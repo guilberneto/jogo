@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo Multiplayer</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #111;
+        }
+
+        canvas {
+            display: block;
+            background: #222;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+
+    <script>
+
+        // =========================
+        // SOCKET
+        // =========================
+
+        const socket = io();
+
+        // =========================
+        // CANVAS
+        // =========================
+
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // =========================
+        // INPUTS
+        // =========================
+
+        const teclas = {};
+
+        const mouse = {
+            x: 0,
+            y: 0
+        };
+
+        // =========================
+        // ESTADO DO JOGO
+        // =========================
+
+        let jogadores = {};
+        let projeteis = [];
+
+        // =========================
+        // TECLADO
+        // =========================
+
+        document.addEventListener("keydown", (event) => {
+
+            teclas[event.key.toLowerCase()] = true;
+
+        });
+
+        document.addEventListener("keyup", (event) => {
+
+            teclas[event.key.toLowerCase()] = false;
+
+        });
+
+        // =========================
+        // MOUSE
+        // =========================
+
+        canvas.addEventListener("mousemove", (event) => {
+
+            mouse.x = event.clientX;
+            mouse.y = event.clientY;
+
+        });
+
+        // =========================
+        // TIRO
+        // =========================
+
+        canvas.addEventListener("mousedown", (event) => {
+
+            // botão esquerdo
+            if (event.button === 0) {
+
+                socket.emit("atirar");
+
+            }
+
+        });
+
+        // =========================
+        // RECEBER ESTADO DO SERVIDOR
+        // =========================
+
+        socket.on("estado_jogo", (estado) => {
+
+            jogadores = estado.jogadores || {};
+            projeteis = estado.projeteis || [];
+
+        });
+
+        // =========================
+        // LOOP PRINCIPAL
+        // =========================
+
+        function atualizar() {
+
+            // =========================
+            // PEGA O PLAYER LOCAL
+            // =========================
+
+            const meuJogador = jogadores[socket.id];
+
+            let angulo = 0;
+
+            // =========================
+            // CALCULAR ÂNGULO
+            // =========================
+
+            if (meuJogador) {
+
+                angulo = Math.atan2(
+
+                    mouse.y - (meuJogador.y + meuJogador.tamanho / 2),
+
+                    mouse.x - (meuJogador.x + meuJogador.tamanho / 2)
+
+                );
+
+            }
+
+            // =========================
+            // ENVIAR DADOS AO SERVIDOR
+            // =========================
+
+            socket.emit("dados_jogo", {
+
+                teclas_pressionadas: teclas,
+                angulo: angulo
+
+            });
+
+            // =========================
+            // LIMPAR TELA
+            // =========================
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // =========================
+            // DESENHAR JOGADORES
+            // =========================
+
+            for (let id in jogadores) {
+
+                const jogador = jogadores[id];
+
+                // salva contexto
+                ctx.save();
+
+                // move origem
+                ctx.translate(
+
+                    jogador.x + jogador.tamanho / 2,
+                    jogador.y + jogador.tamanho / 2
+
+                );
+
+                // rotação
+                ctx.rotate(jogador.angulo || 0);
+
+                // cor do player
+                ctx.fillStyle = jogador.cor || "red";
+
+                // corpo
+                ctx.fillRect(
+
+                    -jogador.tamanho / 2,
+                    -jogador.tamanho / 2,
+
+                    jogador.tamanho,
+                    jogador.tamanho
+
+                );
+
+                // arma
+                ctx.fillStyle = "black";
+
+                ctx.fillRect(
+
+                    0,
+                    -5,
+
+                    jogador.tamanho / 2,
+                    10
+
+                );
+
+                // restaura contexto
+                ctx.restore();
+
+                // =========================
+                // BARRA DE VIDA
+                // =========================
+
+                ctx.fillStyle = "red";
+
+                ctx.fillRect(
+
+                    jogador.x,
+                    jogador.y - 15,
+
+                    jogador.tamanho,
+                    8
+
+                );
+
+                ctx.fillStyle = "lime";
+
+                ctx.fillRect(
+
+                    jogador.x,
+                    jogador.y - 15,
+
+                    jogador.tamanho * ((jogador.vida || 100) / 100),
+                    8
+
+                );
+
+            }
+
+            // =========================
+            // DESENHAR PROJÉTEIS
+            // =========================
+
+            projeteis.forEach((p) => {
+
+                ctx.beginPath();
+
+                ctx.arc(
+
+                    p.x,
+                    p.y,
+                    p.raio,
+
+                    0,
+                    Math.PI * 2
+
+                );
+
+                ctx.fillStyle = "yellow";
+
+                ctx.fill();
+
+                ctx.closePath();
+
+            });
+
+            // =========================
+            // FPS LOOP
+            // =========================
+
+            requestAnimationFrame(atualizar);
+
+        }
+
+        // iniciar jogo
+        atualizar();
+
+        // =========================
+        // RESIZE
+        // =========================
+
+        window.addEventListener("resize", () => {
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+        });
+
+    </script>
+
+</body>
+
+</html>

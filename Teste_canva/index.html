@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOGO</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            background: #222;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+
+        // Trabalhando com o canvas 
+        const canvas = document.getElementById("canvas");
+
+        const ctx = canvas.getContext("2d");
+
+
+
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Posição do quadrado
+        let x = 100;
+        let y = 100;
+
+        // Tamanho personagem 
+        const tamanho = 50;
+
+        // Velocidade 
+        const velocidade = 5;
+
+        // Teclas pressionadas
+        const teclas = {};
+
+        // Detectar tecla apertada
+        document.addEventListener("keydown", (event) => {
+            teclas[event.key] = true;
+        });
+
+        // Detectar tecla solta
+        document.addEventListener("keyup", (event) => {
+            teclas[event.key] = false;
+        });
+
+
+        // loop do jogo
+        function atualizar() {
+
+            // mover
+            if (teclas["w"]) {
+                y -= velocidade;
+            }
+
+            if (teclas["s"]) {
+                y += velocidade;
+            }
+
+            if (teclas["a"]) {
+                x -= velocidade;
+            }
+
+            if (teclas["d"]) {
+                x += velocidade;
+            }
+
+            // limites dá tela esquerda
+            if (x < 0) {
+                x = 0;
+            }
+
+            // limites dá tela direita
+            if (x + tamanho > canvas.width) {
+                x = canvas.width - tamanho;
+            }
+
+            // limites de topo
+            if (y < 0) {
+                y = 0;
+            }
+
+            // limite da parte de baixo
+            if (y + tamanho > canvas.height) {
+                y = canvas.height - tamanho;
+            }
+
+            // Limpar a tela
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // desenhar o jogador
+            ctx.fillStyle = "red";
+            ctx.fillRect(x, y, tamanho, tamanho);
+
+            requestAnimationFrame(atualizar);
+        }
+
+        atualizar();
+
+        // se a janela do navegador mudar de tamanho o canva atualiza
+        window.addEventListener("resize", () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+
+</html>
