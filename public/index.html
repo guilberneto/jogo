@@ -4,39 +4,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo Multiplayer</title>
-
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background: #111;
-        }
-
-        canvas {
-            display: block;
-            background: #222;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Jogo</title>
 </head>
 
-<body>
-
+<body id="corpo">
     <canvas id="canvas"></canvas>
 
-    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js" defer></script>
 
     <script>
 
-        // =========================
-        // SOCKET
-        // =========================
+        // sons do jogo
+        let somTiro = new Audio("./sons/tiro01.mp3");
+        let somDano = new Audio("./sons/dano.mp3");
+        let somMorte = new Audio("./sons/morte.mp3");
 
-        const socket = io();
+        somTiro.volume = 0.5;
+        somDano.volume = 0.6;
+        somMorte.volume = 0.7;
 
-        // =========================
-        // CANVAS
-        // =========================
+
+        let nomeJogador = "";
+        let jogoIniciado = false;
+        let jogadoresOnline = 0;
+
+        // iniciando o socket io
+        let socket = null;
+
+        // Coletando nome do jogador 
+        function formularioNome() {
+
+            let corpo = document.getElementById("corpo");
+
+            let containerForm = document.createElement("form");
+            containerForm.id = "formNome";
+
+            let span = document.createElement("span");
+            span.textContent = "Nome do Jogador";
+
+            let inputNome = document.createElement("input");
+            inputNome.type = "text";
+            inputNome.placeholder = "Digite seu nome";
+
+            let botao = document.createElement("button");
+            botao.type = "submit";
+            botao.textContent = "Entrar";
+
+            containerForm.appendChild(span);
+
+            containerForm.appendChild(inputNome);
+            containerForm.appendChild(botao);
+
+            corpo.appendChild(containerForm);
+
+            containerForm.addEventListener("submit", (evento) => {
+
+                evento.preventDefault();
+
+                const nome = inputNome.value.trim();
+
+                if (!nome) {
+                    alert("Digite um nome!");
+                    return;
+                }
+
+                nomeJogador = nome;
+
+                socket = io();
+
+                iniciarEventosSocket();
+
+                containerForm.remove();
+
+                jogoIniciado = true;
+
+                atualizar();
+
+            });
+        }
+
+        function iniciarEventosSocket() {
+
+            socket.on("connect", () => {
+
+                console.log("Conectado:", socket.id);
+
+                socket.emit("entrar_jogo", {
+                    nome: nomeJogador
+                });
+
+            });
+
+            socket.on("estado_jogo", (estado) => {
+
+                jogadores = estado.jogadores || {};
+                projeteis = estado.projeteis || [];
+
+                jogadoresOnline = estado.online || 0;
+
+            });
+
+            socket.on("recebeu_dano", () => {
+
+                somDano.currentTime = 0;
+
+                somDano.play();
+            });
+
+
+            socket.on("morreu", () => {
+
+                somMorte.currentTime = 0;
+
+                somMorte.play();
+
+            });
+
+        }
+
+
+
+        // canvas
 
         const canvas = document.getElementById("canvas");
         const ctx = canvas.getContext("2d");
@@ -44,9 +136,7 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // =========================
-        // INPUTS
-        // =========================
+        // inputs talvez mudarei conforme o tempo
 
         const teclas = {};
 
@@ -55,16 +145,12 @@
             y: 0
         };
 
-        // =========================
-        // ESTADO DO JOGO
-        // =========================
+        // estado do jogo
 
         let jogadores = {};
         let projeteis = [];
 
-        // =========================
-        // TECLADO
-        // =========================
+        // capturar eventos do teclado e mouse
 
         document.addEventListener("keydown", (event) => {
 
@@ -78,9 +164,6 @@
 
         });
 
-        // =========================
-        // MOUSE
-        // =========================
 
         canvas.addEventListener("mousemove", (event) => {
 
@@ -89,12 +172,11 @@
 
         });
 
-        // =========================
-        // TIRO
-        // =========================
+        // funcionalidade de tiro ao lado do cliente 
 
         canvas.addEventListener("mousedown", (event) => {
 
+            /*
             // botão esquerdo
             if (event.button === 0) {
 
@@ -102,39 +184,32 @@
 
             }
 
+            */
+
+            if (event.button === 0 && socket && socket.connected) {
+
+                somTiro.currentTime = 0;
+
+                somTiro.play();
+
+                socket.emit("atirar");
+            }
+
         });
 
-        // =========================
-        // RECEBER ESTADO DO SERVIDOR
-        // =========================
-
-        socket.on("estado_jogo", (estado) => {
-
-            jogadores = estado.jogadores || {};
-            projeteis = estado.projeteis || [];
-
-        });
-
-        // =========================
-        // LOOP PRINCIPAL
-        // =========================
+        // loop principal
 
         function atualizar() {
 
-            // =========================
-            // PEGA O PLAYER LOCAL
-            // =========================
 
+            // pega o player local
             const meuJogador = jogadores[socket.id];
 
             let angulo = 0;
 
-            // =========================
-            // CALCULAR ÂNGULO
-            // =========================
 
+            // calcular ângulo
             if (meuJogador) {
-
                 angulo = Math.atan2(
 
                     mouse.y - (meuJogador.y + meuJogador.tamanho / 2),
@@ -142,30 +217,19 @@
                     mouse.x - (meuJogador.x + meuJogador.tamanho / 2)
 
                 );
-
             }
 
-            // =========================
-            // ENVIAR DADOS AO SERVIDOR
-            // =========================
-
+            // enviando os dados do jogo ao servidor
             socket.emit("dados_jogo", {
-
                 teclas_pressionadas: teclas,
-                angulo: angulo
-
+                angulo: angulo,
             });
 
-            // =========================
-            // LIMPAR TELA
-            // =========================
 
+            // limpar tela
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // =========================
-            // DESENHAR JOGADORES
-            // =========================
-
+            // desenhar os jogadores na tela
             for (let id in jogadores) {
 
                 const jogador = jogadores[id];
@@ -214,10 +278,7 @@
                 // restaura contexto
                 ctx.restore();
 
-                // =========================
-                // BARRA DE VIDA
-                // =========================
-
+                // barra de vida do jogador, nome , mortes etc..
                 ctx.fillStyle = "red";
 
                 ctx.fillRect(
@@ -242,12 +303,27 @@
 
                 );
 
+                ctx.fillStyle = "white";
+                ctx.font = "12px Arial";
+                ctx.textAlign = "center";
+
+                ctx.fillText(
+                    jogador.nome || "",
+                    jogador.x + jogador.tamanho / 2,
+                    jogador.y - 25
+                );
+
+                ctx.fillStyle = "yellow";
+                ctx.font = "10px Arial";
+
+                ctx.fillText(
+                    `K:${jogador.kills || 0} D:${jogador.deaths || 0}`,
+                    jogador.x + jogador.tamanho / 2,
+                    jogador.y - 40
+                );
             }
 
-            // =========================
-            // DESENHAR PROJÉTEIS
-            // =========================
-
+            // desenhando os projeteis as (balas)
             projeteis.forEach((p) => {
 
                 ctx.beginPath();
@@ -271,28 +347,79 @@
 
             });
 
-            // =========================
-            // FPS LOOP
-            // =========================
+            /*
+            // Mostrar placar e jogadores online
+            const xCentro = canvas.width / 2;
+            const yCentro = canvas.width / 2;
 
+            ctx.fillStyle = "white";
+            ctx.font = "16px Arial";
+            ctx.textAlign = "left";
+
+            let linha = 50;
+
+            ctx.fillText(
+                `Online: ${jogadoresOnline}`,
+                xCentro,
+                yCentro
+            );
+            ctx.fillText("PLACAR", 20, linha);
+
+            linha += 25;
+            */
+
+            ctx.fillStyle = "#FFD700";       // Cor destacada (Ex: Amarelo Ouro)
+            ctx.font = "bold 18px Arial";    // Negrito e levemente maior para destacar
+            ctx.textAlign = "center";        // Garante a centralização horizontal
+
+            const xCentro = canvas.width / 2;
+            const yTopo = 30;                // Define uma distância fixa do topo da tela
+
+            ctx.fillText(
+                `Online: ${jogadoresOnline}`,
+                xCentro,
+                yTopo
+            );
+
+            // 2. Configuração para o "Placar" (Lado Esquerdo)
+            ctx.fillStyle = "white";         // Retorna para a cor padrão do placar
+            ctx.font = "16px Arial";
+            ctx.textAlign = "left";          // Alinha o texto à esquerda
+
+            let linha = 50;                  // Começa abaixo do topo
+
+            ctx.fillText("PLACAR", 20, linha);
+
+            // Próximas linhas do placar (ex: nomes dos jogadores)
+            linha += 25;
+            // ctx.fillText("Jogador 1: 10", 20, linha); // Exemplo de uso contínuo
+
+            for (const id in jogadores) {
+
+                const jogador = jogadores[id];
+
+                ctx.fillText(
+                    `${jogador.nome} | Matou: ${jogador.kills || 0} Foi Morto: ${jogador.deaths || 0}`,
+                    20,
+                    linha
+                );
+
+                linha += 25;
+            }
+            // Fps loop 
             requestAnimationFrame(atualizar);
-
         }
 
         // iniciar jogo
-        atualizar();
-
-        // =========================
-        // RESIZE
-        // =========================
-
+        //atualizar();
+        formularioNome();
+        // Quando a tela for redimensionada no caso do lado do cliente
         window.addEventListener("resize", () => {
 
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
         });
-
     </script>
 
 </body>

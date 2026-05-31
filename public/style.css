@@ -1,0 +1,50 @@
+.press-start-2p-regular {
+    font-family: "Press Start 2P", system-ui;
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+}
+
+canvas {
+    display: block;
+    background: #222;
+}
+
+#formNome {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: "Press Start 2P", system-ui;
+    width: 300px;
+    padding: 20px;
+    background: white;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#formNome>input {
+    padding: 10px;
+    font-family: "Press Start 2P", system-ui;
+
+}
+
+#formNome>button {
+    font-family: "Press Start 2P", system-ui;
+    padding: 10px;
+    background: #222;
+    color: aliceblue;
+    border: none;
+}
+
+#formNome>span {
+    margin: 0 auto;
+    padding: 10px;
+}
