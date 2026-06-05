@@ -4,11 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="imagens/logo.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="imagens/logo.png">
+    <link rel="shortcut icon" href="imagens/logo.png" type="image/x-icon">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="imagens/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <title>Jogo</title>
+    <title>RushBR</title>
 </head>
 
 <body id="corpo">
@@ -43,6 +48,11 @@
             let containerForm = document.createElement("form");
             containerForm.id = "formNome";
 
+            let logoJogo = document.createElement("img");
+            logoJogo.src = "/imagens/logo_sem_fundo.png";
+            logoJogo.alt = "Logo RushBR";
+            logoJogo.id = "logoFormulario";
+
             let span = document.createElement("span");
             span.textContent = "Nome do Jogador";
 
@@ -53,6 +63,8 @@
             let botao = document.createElement("button");
             botao.type = "submit";
             botao.textContent = "Entrar";
+
+            containerForm.appendChild(logoJogo);
 
             containerForm.appendChild(span);
 
@@ -347,26 +359,6 @@
 
             });
 
-            /*
-            // Mostrar placar e jogadores online
-            const xCentro = canvas.width / 2;
-            const yCentro = canvas.width / 2;
-
-            ctx.fillStyle = "white";
-            ctx.font = "16px Arial";
-            ctx.textAlign = "left";
-
-            let linha = 50;
-
-            ctx.fillText(
-                `Online: ${jogadoresOnline}`,
-                xCentro,
-                yCentro
-            );
-            ctx.fillText("PLACAR", 20, linha);
-
-            linha += 25;
-            */
 
             ctx.fillStyle = "#FFD700";       // Cor destacada (Ex: Amarelo Ouro)
             ctx.font = "bold 18px Arial";    // Negrito e levemente maior para destacar
@@ -410,15 +402,12 @@
             requestAnimationFrame(atualizar);
         }
 
-        // iniciar jogo
-        //atualizar();
         formularioNome();
-        // Quando a tela for redimensionada no caso do lado do cliente
+
         window.addEventListener("resize", () => {
 
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-
         });
     </script>
 

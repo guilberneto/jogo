@@ -31,20 +31,72 @@ canvas {
 }
 
 #formNome>input {
-    padding: 10px;
+    width: 90%;
+    /* Ajustado para não colar nas bordas */
+    padding: 12px;
     font-family: "Press Start 2P", system-ui;
+    font-size: 10px;
+    /* Fontes pixeladas ficam gigantes, 10px é o ideal aqui */
+    background: #222;
+    color: #fff;
+    border: 2px solid #555;
+    text-align: center;
+    outline: none;
+}
 
+#formNome>input:focus {
+    border-color: #ffe600;
+    /* Borda acende quando o jogador vai digitar */
 }
 
 #formNome>button {
     font-family: "Press Start 2P", system-ui;
-    padding: 10px;
-    background: #222;
-    color: aliceblue;
+    font-size: 12px;
+    width: 99%;
+    padding: 12px;
+    background: #ffe600;
+    /* Botão amarelo RushBR */
+    color: #000;
+    /* Texto preto para alto contraste */
     border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s, background 0.2s;
+}
+
+/* Efeitos de feedback no botão */
+#formNome>button:hover {
+    background: #fffb00;
+    transform: scale(1.03);
+    /* Dá um leve zoom ao passar o mouse */
+}
+
+#formNome>button:active {
+    transform: scale(0.98);
+    /* Efeito de clique */
 }
 
 #formNome>span {
     margin: 0 auto;
-    padding: 10px;
+    padding: 5px;
+    color: #fff;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- NOVO: Animação de flutuação para a logo --- */
+@keyframes flutuar {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-8px);
+        /* Sobe 8 pixels na metade do tempo */
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
 }
