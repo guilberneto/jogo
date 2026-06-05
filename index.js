@@ -1,7 +1,8 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const { join } = require("node:path");
-const port = 3000;
+const port = process.env.PORT || 3000;
 const { Server } = require("socket.io");
 const { createServer } = require("node:http");
 const server = createServer(app);
